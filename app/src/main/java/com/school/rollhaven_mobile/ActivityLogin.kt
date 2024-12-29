@@ -2,16 +2,20 @@ package com.school.rollhaven_mobile
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.school.rollhaven_mobile.repositories.IRollHavenRepository
 import com.school.rollhaven_mobile.repositories.LoginResponse
 import com.school.rollhaven_mobile.repositories.UserLogin
 import com.school.rollhaven_mobile.utils.ApiClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class ActivityLogin: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,23 +37,59 @@ class ActivityLogin: AppCompatActivity() {
             }
         }
     }
-        private fun loginUser(pseudo: String,password: String) {
-            ApiClient.apiService.login(UserLogin(pseudo,password)).enqueue(object : Callback<LoginResponse> {
-                override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-                    if (response.isSuccessful) {
-                        val token = response.body()?.token
-                        Toast.makeText(this@ActivityLogin, "Login successful: $token", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this@ActivityLogin, MainView::class.java)
-                        startActivity(intent)
-                        finish()
-                    } else {
-                        Toast.makeText(this@ActivityLogin, "Login failed: ${response.code()}", Toast.LENGTH_SHORT).show()
-                    }
-                }
+    private fun loginUser(pseudo: String, password: String) {
+        val userLogin = UserLogin(pseudo, password)
 
-                override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                    Toast.makeText(this@ActivityLogin, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+        val retrofit = Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:5277/") // Assurez-vous d'utiliser l'adresse correcte
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val service = retrofit.create(IRollHavenRepository::class.java)
+        service.login(userLogin).enqueue(object : Callback<LoginResponse> {
+            override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                if (response.isSuccessful) {
+                    // Si la connexion est réussie, récupérer l'ID de l'utilisateur depuis la réponse
+                    val loginResponse = response.body()
+                    if (loginResponse != null) {
+                        val userId = loginResponse.id
+                        val token = loginResponse.token // Vous pouvez aussi stocker le token si nécessaire
+
+                        Log.d("LoginActivity", "LoginResponse: userId = $userId, token = $token")
+                        // Sauvegarder l'ID de l'utilisateur dans SharedPreferences
+                        if (userId != null) {
+                            saveUserId(userId)
+                        }
+
+                        // Ensuite, allez à l'écran suivant
+                        val intent = Intent(this@ActivityLogin, FragmentContainerCampaignActivity::class.java)
+                        startActivity(intent)
+                        finish() // Facultatif: fermer l'activité de login
+                    } else {
+                        Log.e("LoginActivity", "Response body is null")
+                    }
+                } else {
+                    Log.e("LoginActivity", "Login failed: ${response.message()}")
+                    Toast.makeText(this@ActivityLogin, "Échec de la connexion", Toast.LENGTH_SHORT).show()
                 }
-            })
+            }
+
+            override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                Log.e("LoginActivity", "Failed to login", t)
+                Toast.makeText(this@ActivityLogin, "Erreur réseau", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun saveUserId(userId: Int) {
+        if (userId != 0) {
+            val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+            editor.putInt("user_id", userId)
+            editor.apply()
+            Log.d("LoginActivity", "User ID saved: $userId") // Afficher l'ID dans Logcat pour vérifier
+        } else {
+            Log.e("LoginActivity", "Invalid user ID: $userId")
         }
+    }
     }
