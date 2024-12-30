@@ -39,14 +39,15 @@ class RollFragment : Fragment() {
 
         // Configure les adaptateurs des spinners
         val typeRolls = listOf("Combat", "Magie", "Competence", "Autre")
-        val adapter = ArrayAdapter(
+        val typeAutres : MutableList<String> = mutableListOf()
+        val adapterTypeRoll = ArrayAdapter(
             requireContext(),
             R.layout.simple_spinner_item,
             typeRolls
         )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        adapterTypeRoll.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
-        binding.spinnerType.adapter = adapter
+        binding.spinnerType.adapter = adapterTypeRoll
 
         binding.spinnerType.onItemSelectedListener= object :AdapterView.OnItemSelectedListener{
 
@@ -56,7 +57,20 @@ class RollFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-                Toast.makeText(requireContext(),"item is ${typeRolls[position]}", Toast.LENGTH_LONG).show()
+                if(typeRolls[position]=="Combat"){
+                    typeAutres.add("Epee")
+                    typeAutres.add("Hache")
+                    typeAutres.add("Arc")
+                }else if (typeRolls[position]=="Magie"){
+                    typeAutres.add("Feu")
+                    typeAutres.add("Glace")
+                    typeAutres.add("Vent")
+                }else if (typeRolls[position]=="Competence"){
+                    typeAutres.add("Escalade")
+                    typeAutres.add("Intimidation")
+                    typeAutres.add("Histoire")
+                }
+                /*Toast.makeText(requireContext(),"item is ${typeRolls[position]}", Toast.LENGTH_LONG).show()*/
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -65,8 +79,14 @@ class RollFragment : Fragment() {
         }
 
 
+        val adapterTypeAutre = ArrayAdapter(
+            requireContext(),
+            R.layout.simple_spinner_item,
+            typeAutres
+        )
+        adapterTypeRoll.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
-        binding.spinnerAutre.adapter = adapter
+        binding.spinnerAutre.adapter = adapterTypeAutre
     }
 
     override fun onDestroyView() {
