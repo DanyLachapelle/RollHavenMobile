@@ -48,7 +48,7 @@ class RollFragment : Fragment() {
 
         binding.spinnerType.adapter = adapter
 
-        binding.spinnerType?.onItemSelectedListener= object :AdapterView.OnItemSelectedListener{
+        binding.spinnerType.onItemSelectedListener= object :AdapterView.OnItemSelectedListener{
 
             override fun onItemSelected(
                 parent: AdapterView<*>?,
@@ -56,7 +56,11 @@ class RollFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-                Toast.makeText(this@RollFragment,"item is ${typeRolls[position]}", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(),"item is ${typeRolls[position]}", Toast.LENGTH_LONG).show()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                TODO("Not yet implemented")
             }
         }
 
