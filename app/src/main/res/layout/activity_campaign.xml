@@ -20,8 +20,9 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentContainerView2"
         android:name="com.school.rollhaven_mobile.RollFragment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="1dp"
+        android:layout_height="2dp"
         tools:layout_editor_absoluteX="199dp"
-        tools:layout_editor_absoluteY="363dp" />
+        tools:layout_editor_absoluteY="363dp"
+        tools:ignore="MissingConstraints" />
 </androidx.constraintlayout.widget.ConstraintLayout>
