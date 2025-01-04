@@ -1,6 +1,5 @@
 package com.school.rollhaven_mobile
 
-import android.R
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -26,6 +25,9 @@ class RollFragment : Fragment() {
     private var _binding: FragmentRollBinding? = null
     private val binding get() = _binding!!
 
+    val typeRolls = listOf("Combat", "Magie", "Competence", "Autre")
+    val typeAutres: MutableList<String> = mutableListOf()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,59 +40,94 @@ class RollFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Configure les adaptateurs des spinners
-        val typeRolls = listOf("Combat", "Magie", "Competence", "Autre")
-        val typeAutres : MutableList<String> = mutableListOf()
         val adapterTypeRoll = ArrayAdapter(
             requireContext(),
-            R.layout.simple_spinner_item,
+            android.R.layout.simple_spinner_item,
             typeRolls
         )
         adapterTypeRoll.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
         binding.spinnerType.adapter = adapterTypeRoll
 
-        binding.spinnerType.onItemSelectedListener= object :AdapterView.OnItemSelectedListener{
+        // Adapter initial pour spinnerAutre
+        val adapterTypeAutre = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            typeAutres
+        )
+        adapterTypeAutre.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerAutre.adapter = adapterTypeAutre
 
+        // Listener pour spinnerType
+        binding.spinnerType.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>?,
                 view: View?,
                 position: Int,
                 id: Long
             ) {
-                if(typeRolls[position]=="Combat"){
-                    typeAutres.add("Epee")
-                    typeAutres.add("Hache")
-                    typeAutres.add("Arc")
-                }else if (typeRolls[position]=="Magie"){
-                    typeAutres.add("Feu")
-                    typeAutres.add("Glace")
-                    typeAutres.add("Vent")
-                }else if (typeRolls[position]=="Competence"){
-                    typeAutres.add("Escalade")
-                    typeAutres.add("Intimidation")
-                    typeAutres.add("Histoire")
+                // Afficher LinearLayoutAutre
+                binding.LinearLayoutAutre.visibility = View.VISIBLE
+
+                // Mettre à jour la liste typeAutres en fonction de la sélection
+                typeAutres.clear()
+                when (typeRolls[position]) {
+                    "Combat" -> typeAutres.addAll(listOf("Epee", "Hache", "Arc"))
+                    "Magie" -> typeAutres.addAll(listOf("Feu", "Glace", "Vent"))
+                    "Competence" -> typeAutres.addAll(listOf("Escalade", "Intimidation", "Histoire"))
+                    "Autre" -> typeAutres.addAll(listOf("d6", "D8", "d10", "d12", "d20"))
                 }
-                /*Toast.makeText(requireContext(),"item is ${typeRolls[position]}", Toast.LENGTH_LONG).show()*/
+
+                // Notifier l'adaptateur du changement dans la liste
+                adapterTypeAutre.notifyDataSetChanged()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                TODO("Not yet implemented")
+                // Pas d'action spécifique requise
             }
         }
 
+        // Listener pour spinnerAutre
+        binding.spinnerAutre.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                // Exemple : Afficher un message avec l'option sélectionnée
 
-        val adapterTypeAutre = ArrayAdapter(
-            requireContext(),
-            R.layout.simple_spinner_item,
-            typeAutres
-        )
-        adapterTypeRoll.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
 
-        binding.spinnerAutre.adapter = adapterTypeAutre
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Pas d'action spécifique requise
+            }
+        }
+        setUpListener()
+    }
+
+    private fun setUpListener() {
+        binding.BRoll.setOnClickListener {
+            val type = binding.spinnerAutre.selectedItem
+
+            Toast.makeText(
+                requireContext(),
+                "type sélectionné : $type",
+                Toast.LENGTH_SHORT
+            ).show()
+
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        fun newInstance() =
+            RollFragment().apply {
+                // Ajoutez des paramètres si nécessaire
+            }
     }
 }
