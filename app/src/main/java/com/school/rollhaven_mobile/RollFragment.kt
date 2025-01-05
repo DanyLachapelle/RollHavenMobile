@@ -100,7 +100,7 @@ class RollFragment : Fragment() , SensorEventListener{
                 position: Int,
                 id: Long
             ) {
-                // Placeholder pour action au changement de sélection
+                // Placeholder
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
