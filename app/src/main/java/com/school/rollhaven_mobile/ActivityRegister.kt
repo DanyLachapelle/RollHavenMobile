@@ -59,9 +59,9 @@ class ActivityRegister : AppCompatActivity() {
                     Toast.makeText(this@ActivityRegister, "Registration Successful", Toast.LENGTH_SHORT).show()
 
                     // Rediriger vers l'écran de connexion ou MainView
-                    val intent = Intent(this@ActivityRegister, MainView::class.java)
+                    val intent = Intent(this@ActivityRegister, FragmentContainerCampaignActivity::class.java)
                     startActivity(intent)
-                    finish()  // Fermer l'écran d'inscription pour empêcher le retour en arrière
+                    finish()
                 } else {
                     Toast.makeText(this@ActivityRegister, "Registration failed: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }

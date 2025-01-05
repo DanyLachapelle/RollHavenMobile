@@ -61,10 +61,10 @@ class ActivityLogin: AppCompatActivity() {
                             saveUserId(userId)
                         }
 
-                        // Ensuite, allez à l'écran suivant
+
                         val intent = Intent(this@ActivityLogin, FragmentContainerCampaignActivity::class.java)
                         startActivity(intent)
-                        finish() // Facultatif: fermer l'activité de login
+                        finish()
                     } else {
                         Log.e("LoginActivity", "Response body is null")
                     }

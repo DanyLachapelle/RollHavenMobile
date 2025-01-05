@@ -30,7 +30,7 @@ class ActivityCampaign : AppCompatActivity() {
         binding.buttonDice.setOnClickListener {
             supportFragmentManager
                 .beginTransaction()
-                .replace(R.id.fragmentContainerView,
+                .replace(R.id.fragmentContainerView2,
                     RollFragment.newInstance(),
                     "currentFragment"
                 )
