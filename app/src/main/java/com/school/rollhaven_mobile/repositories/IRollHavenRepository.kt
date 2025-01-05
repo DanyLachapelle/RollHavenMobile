@@ -42,4 +42,10 @@ interface IRollHavenRepository {
 
     @GET("campaigns/Public")
     suspend fun getPublicCampaigns(): List<Campaign>
+
+    @POST("api/CampaignCommand/{invitationCode}/join/{userId}")
+    fun joinPrivateCampaign(
+        @Path("invitationCode") invitationCode: String,
+        @Path("userId") userId: Int
+    ): Call<Void>
 }
