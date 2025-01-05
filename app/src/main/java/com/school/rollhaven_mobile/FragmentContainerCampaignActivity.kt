@@ -1,5 +1,6 @@
 package com.school.rollhaven_mobile
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -18,6 +19,7 @@ class FragmentContainerCampaignActivity:AppCompatActivity() {
         val joinCampaignButton = findViewById<Button>(R.id.btn_join_campaign)
         val fragmentContainer = findViewById<FrameLayout>(R.id.fragment_container)
         val joinCampaignMessageTextView = findViewById<FrameLayout>(R.id.frame_join_campaign_message)
+        val launchCampaignButton = findViewById<Button>(R.id.btn_activity_fragment_container_campaign_launch_campaign)
 
         val userId = getUserId()
 
@@ -34,6 +36,10 @@ class FragmentContainerCampaignActivity:AppCompatActivity() {
             showPublicCampaignsFragment()  // Afficher le fragment des campagnes publiques
         }
 
+        launchCampaignButton.setOnClickListener {
+            val intent = Intent(this, ActivityCampaign::class.java)
+            startActivity(intent) // Lancer l'activité
+        }
 
 
         // Si c'est la première fois que l'Activity est lancée, ajouter le fragment
