@@ -1,31 +1,33 @@
 package com.school.rollhaven_mobile
 
+
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import com.school.rollhaven_mobile.databinding.FragmentRollBinding
+import kotlin.math.sqrt
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [RollFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class RollFragment : Fragment() {
-    // TODO: Rename and change types of parameters
+class RollFragment : Fragment() , SensorEventListener{
     private var _binding: FragmentRollBinding? = null
     private val binding get() = _binding!!
 
-    val typeRolls = listOf("Combat", "Magie", "Competence", "Autre")
+    private lateinit var sensorManager: SensorManager
+    private var accelerometer: Sensor? = null
+    private var lastAcceleration: Float = 0f
+    private var currentAcceleration: Float = 0f
+    private var shake: Float = 0f
+
+    val typeRolls = listOf("Combat","Competence","Damage" ,"Other")
     val typeAutres: MutableList<String> = mutableListOf()
 
     override fun onCreateView(
@@ -39,17 +41,27 @@ class RollFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Configure les adaptateurs des spinners
+        // Initialisation des capteurs pour la détection de secousse
+        sensorManager = requireContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+        if (accelerometer != null) {
+            sensorManager.registerListener(
+                this,
+                accelerometer,
+                SensorManager.SENSOR_DELAY_UI
+            )
+        }
+
+        // Configuration des spinners
         val adapterTypeRoll = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
             typeRolls
         )
         adapterTypeRoll.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-
         binding.spinnerType.adapter = adapterTypeRoll
 
-        // Adapter initial pour spinnerAutre
         val adapterTypeAutre = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
@@ -58,7 +70,7 @@ class RollFragment : Fragment() {
         adapterTypeAutre.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerAutre.adapter = adapterTypeAutre
 
-        // Listener pour spinnerType
+        // Listeners pour les spinners
         binding.spinnerType.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>?,
@@ -66,28 +78,21 @@ class RollFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-                // Afficher LinearLayoutAutre
                 binding.LinearLayoutAutre.visibility = View.VISIBLE
 
-                // Mettre à jour la liste typeAutres en fonction de la sélection
                 typeAutres.clear()
                 when (typeRolls[position]) {
-                    "Combat" -> typeAutres.addAll(listOf("Epee", "Hache", "Arc"))
-                    "Magie" -> typeAutres.addAll(listOf("Feu", "Glace", "Vent"))
-                    "Competence" -> typeAutres.addAll(listOf("Escalade", "Intimidation", "Histoire"))
-                    "Autre" -> typeAutres.addAll(listOf("d6", "D8", "d10", "d12", "d20"))
+                    "Combat" -> typeAutres.addAll(listOf("Sword","Axe","Bow","Dagger"))
+                    "Competence" -> typeAutres.addAll(listOf("Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History", "Insight", "Intimidation", "Investigation", "Medicine", "Nature", "Perception", "Performance", "Persuasion", "Religion", "Sleight of Hand", "Stealth", "Survival"))
+                    "Damage" -> typeAutres.addAll(listOf("Sword","Axe","Bow","Dagger"))
+                    "Other" -> typeAutres.addAll(listOf("d6", "d8", "d10", "d12", "d20"))
                 }
-
-                // Notifier l'adaptateur du changement dans la liste
                 adapterTypeAutre.notifyDataSetChanged()
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // Pas d'action spécifique requise
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        // Listener pour spinnerAutre
         binding.spinnerAutre.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>?,
@@ -95,39 +100,90 @@ class RollFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-                // Exemple : Afficher un message avec l'option sélectionnée
-
+                // Placeholder pour action au changement de sélection
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // Pas d'action spécifique requise
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
-        setUpListener()
     }
 
-    private fun setUpListener() {
-        binding.BRoll.setOnClickListener {
-            val type = binding.spinnerAutre.selectedItem
 
-            Toast.makeText(
-                requireContext(),
-                "type sélectionné : $type",
-                Toast.LENGTH_SHORT
-            ).show()
+    // Méthodes pour la détection de mouvement
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
+            val x = event.values[0]
+            val y = event.values[1]
+            val z = event.values[2]
 
+            lastAcceleration = currentAcceleration
+            currentAcceleration = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
+            val delta = currentAcceleration - lastAcceleration
+            shake = shake * 0.9f + delta
+
+            if (shake > 12) {
+                onShakeDetected()
+            }
         }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+    private fun onShakeDetected() {
+        val type = binding.spinnerType.selectedItem
+        val autre = binding.spinnerAutre.selectedItem
+
+        val dice =calculDice(type.toString(), autre.toString())
+
+        val randomNumber = (1..dice).random()
+
+        Toast.makeText(
+            requireContext(),
+            "Résultat: $randomNumber + $type + $autre",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun calculDice(type: String, autre: String): Int {
+        when (type) {
+            "Combat" -> return 20
+            "Competence" -> return 20
+            "Damage" -> return when (autre) {
+                "Sword" -> 10
+                "Axe" -> 12
+                "Bow" -> 6
+                "Dagger" -> 4
+                else -> {
+
+                    -1
+                }
+            }
+            "Other" -> return when (autre) {
+                "6" -> 6
+                "8" -> 8
+                "10" -> 10
+                "12" -> 12
+                "20" -> 20
+                else -> {
+
+                    -1
+                }
+            }
+            else -> {
+
+                return -1
+            }
+        }
+        return -1
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        sensorManager.unregisterListener(this)
         _binding = null
     }
 
     companion object {
         fun newInstance() =
-            RollFragment().apply {
-                // Ajoutez des paramètres si nécessaire
-            }
+            RollFragment().apply {}
     }
 }

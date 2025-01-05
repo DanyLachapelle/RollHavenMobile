@@ -27,6 +27,7 @@ class FragmentContainerCampaignActivity:AppCompatActivity() {
         val joinCampaignButton = findViewById<Button>(R.id.btn_join_campaign)
         val fragmentContainer = findViewById<FrameLayout>(R.id.fragment_container)
         val joinCampaignMessageTextView = findViewById<FrameLayout>(R.id.frame_join_campaign_message)
+        val launchCampaignButton = findViewById<Button>(R.id.btn_activity_fragment_container_campaign_launch_campaign)
         val scanQrCodeButton = findViewById<Button>(R.id.btn_scan_qr_code)
 
         val userId = getUserId()
@@ -49,6 +50,11 @@ class FragmentContainerCampaignActivity:AppCompatActivity() {
             // Appeler une méthode pour lancer le lecteur QR Code
             launchQrCodeScanner()
         }
+        launchCampaignButton.setOnClickListener {
+            val intent = Intent(this, ActivityCampaign::class.java)
+            startActivity(intent) // Lancer l'activité
+        }
+
 
         // Si c'est la première fois que l'Activity est lancée, ajouter le fragment
         if (savedInstanceState == null) {

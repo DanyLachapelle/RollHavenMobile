@@ -63,6 +63,18 @@
         app:layout_constraintVertical_bias="0.01"/>
 
     <Button
+        android:id="@+id/btn_activity_fragment_container_campaign_launch_campaign"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:text="lauch campaign"
+        app:layout_constraintBottom_toTopOf="@+id/fragment_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_join_campaign"
+        app:layout_constraintVertical_bias="0.123" />
+
+    <Button
         android:id="@+id/btn_scan_qr_code"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
