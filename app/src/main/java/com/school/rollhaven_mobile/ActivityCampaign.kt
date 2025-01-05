@@ -1,6 +1,7 @@
 package com.school.rollhaven_mobile
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -17,7 +18,7 @@ class ActivityCampaign : AppCompatActivity() {
         setContentView(binding.root)
 
         enableEdgeToEdge()
-        setContentView(R.layout.activity_campaign)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -28,6 +29,7 @@ class ActivityCampaign : AppCompatActivity() {
 
     private fun setUpListener() {
         binding.buttonDice.setOnClickListener {
+
             supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.fragmentContainerView2,
