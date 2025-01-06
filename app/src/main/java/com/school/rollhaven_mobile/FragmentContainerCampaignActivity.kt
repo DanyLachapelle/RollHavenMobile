@@ -7,8 +7,16 @@ import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.school.rollhaven_mobile.repositories.IRollHavenRepository
+import com.school.rollhaven_mobile.utils.ApiClient
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class FragmentContainerCampaignActivity:AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,6 +28,7 @@ class FragmentContainerCampaignActivity:AppCompatActivity() {
         val fragmentContainer = findViewById<FrameLayout>(R.id.fragment_container)
         val joinCampaignMessageTextView = findViewById<FrameLayout>(R.id.frame_join_campaign_message)
         val launchCampaignButton = findViewById<Button>(R.id.btn_activity_fragment_container_campaign_launch_campaign)
+        val scanQrCodeButton = findViewById<Button>(R.id.btn_scan_qr_code)
 
         val userId = getUserId()
 
@@ -29,13 +38,18 @@ class FragmentContainerCampaignActivity:AppCompatActivity() {
             showCampaignsFragment(userId)  // Passer l'ID utilisateur au fragment
         }
 
-        // Lorsque l'utilisateur clique sur "Join Campaigns"
+
+
         joinCampaignButton.setOnClickListener {
-            // Cacher le TextView et afficher les campagnes publiques
             joinCampaignMessageTextView.visibility = View.GONE
+            scanQrCodeButton.visibility = View.VISIBLE // Afficher le bouton QR Code
             showPublicCampaignsFragment()  // Afficher le fragment des campagnes publiques
         }
 
+        scanQrCodeButton.setOnClickListener {
+            // Appeler une méthode pour lancer le lecteur QR Code
+            launchQrCodeScanner()
+        }
         launchCampaignButton.setOnClickListener {
             val intent = Intent(this, ActivityCampaign::class.java)
             startActivity(intent) // Lancer l'activité
@@ -57,6 +71,69 @@ class FragmentContainerCampaignActivity:AppCompatActivity() {
                 .commit()
         }
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        val result = com.google.zxing.integration.android.IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+        if (result != null) {
+            if (result.contents != null) {
+                // Afficher le contenu scanné dans un Toast (pour débogage)
+                val qrCodeContent = result.contents
+                Log.i("QrCodeLog", qrCodeContent)
+                Toast.makeText(this, "QR Code: $qrCodeContent", Toast.LENGTH_LONG).show()
+
+                // Récupérer l'ID utilisateur à partir des SharedPreferences
+                val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+                val userId = sharedPreferences.getInt("user_id", -1) // Remplacez -1 par la valeur par défaut si l'ID est introuvable
+
+                if (userId != -1) {
+                    // Appeler l'API pour rejoindre la campagne
+                    joinCampaign(qrCodeContent, userId)
+                } else {
+                    Toast.makeText(this, "Utilisateur non connecté", Toast.LENGTH_SHORT).show()
+                }
+
+            } else {
+                Toast.makeText(this, "Scan annulé", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun joinCampaign(invitationCode: String, userId: Int) {
+        // Utilisation de l'instance Retrofit via ApiClient
+        val service = ApiClient.apiService
+
+        // Appel à l'API pour rejoindre la campagne privée
+        service.joinPrivateCampaign(invitationCode, userId).enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if (response.isSuccessful) {
+                    // Si la requête est réussie, afficher un message de confirmation
+                    Log.i("QrCodeLog", "Campagne rejointe avec succès")
+                    Toast.makeText(this@FragmentContainerCampaignActivity, "Campagne rejointe avec succès", Toast.LENGTH_SHORT).show()
+                } else {
+                    Log.i("QrCodeLog", "Erreur : ${response.code()} ${response.message()}")
+                    // Afficher un message d'erreur en cas d'échec
+                    Toast.makeText(this@FragmentContainerCampaignActivity, "Échec de rejoindre la campagne", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                // Afficher un message d'erreur en cas de problème réseau
+                Log.i("QrCodeLog", "Erreur réseau : ${t.message}")
+                Toast.makeText(this@FragmentContainerCampaignActivity, "Erreur réseau", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun launchQrCodeScanner() {
+        val intentIntegrator = com.google.zxing.integration.android.IntentIntegrator(this)
+        intentIntegrator.setPrompt("Scan a QR Code") // Message affiché pendant le scan
+        intentIntegrator.setBeepEnabled(true) // Activer le son après scan
+        intentIntegrator.setOrientationLocked(false) // Permettre la rotation
+        intentIntegrator.initiateScan() // Démarrer le scan
+    }
+
 
     private fun getUserId(): Int {
         val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
